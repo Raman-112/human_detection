@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Disaster Management Live Feed</title>
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom CSS for animations and styling -->
+  <style>
+    :root {
+      --primary: #134074;
+      --secondary: #0b2545;
+      --accent: #ff5a5f;
+      --light: #f8f9fa;
+      --success: #2ecc71;
+      --warning: #f39c12;
+      --danger: #e74c3c;
+      --info: #3498db;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #f6f9fc, #edf2f7);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      padding: 20px 0;
+    }
+    
+    .page-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .dashboard-header {
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .dashboard-header h1 {
+      margin: 0;
+      font-weight: 600;
+      font-size: 1.8rem;
+      display: flex;
+      align-items: center;
+    }
+    
+    .dashboard-header .badge {
+      background-color: var(--accent);
+      margin-left: 15px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      animation: pulse 2s infinite;
+    }
+    
+    .card {
+      border: none;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 15px rgba(0,0,0,0.07);
+      transition: all 0.3s ease;
+      animation: slideUp 0.7s ease-out forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 20px rgba(0,0,0,0.12);
+    }
+    
+    @keyframes slideUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+    .card:nth-child(4) { animation-delay: 0.4s; }
+    
+    .card-header {
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      color: var(--light);
+      font-weight: 600;
+      font-size: 1.2rem;
+      padding: 12px 20px;
+      border-bottom: none;
+      display: flex;
+      align-items: center;
+    }
+    
+    .card-header i {
+      font-size: 1.3rem;
+      margin-right: 10px;
+    }
+    
+    .card-body {
+      padding: 25px;
+      background-color: white;
+    }
+    
+    .stats-container {
+      background: linear-gradient(135deg, #f6f9fc, #edf2f7);
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .stats-container::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: -20px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: rgba(255,255,255,0.3);
+      z-index: 0;
+    }
+    
+    .stats-container::after {
+      content: '';
+      position: absolute;
+      bottom: -30px;
+      right: -30px;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background-color: rgba(0,0,0,0.03);
+      z-index: 0;
+    }
+    
+    #peopleCount {
+      font-size: 6rem;
+      font-weight: 700;
+      color: var(--success);
+      text-shadow: 0 2px 10px rgba(46,204,113,0.2);
+      position: relative;
+      z-index: 1;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+    
+    .count-label {
+      display: block;
+      font-size: 1.5rem;
+      color: #8795a1;
+      margin-top: 15px;
+      font-weight: 500;
+    }
+    
+    .table {
+      margin-bottom: 0;
+    }
+    
+    .table-responsive {
+      max-height: 300px;
+      border-radius: 8px;
+    }
+    
+    .table thead th {
+      background-color: #edf2f7;
+      color: var(--secondary);
+      font-weight: 600;
+      border-top: none;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    
+    .table tbody tr {
+      transition: all 0.2s ease;
+    }
+    
+    .table tbody tr:hover {
+      background-color: rgba(19, 64, 116, 0.05);
+    }
+    
+    .table tbody td {
+      vertical-align: middle;
+      padding: 12px 15px;
+      border-color: #edf2f7;
+    }
+    
+    #humanChart {
+      min-height: 300px;
+    }
+    
+    /* Animation keyframes */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    /* New row animation */
+    .new-row {
+      animation: rowHighlight 2s ease;
+    }
+    
+    @keyframes rowHighlight {
+      0% { background-color: rgba(46, 204, 113, 0.2); }
+      100% { background-color: transparent; }
+    }
+    
+    /* Progress bar at the top of the page */
+    .loading-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(to right, var(--accent), var(--success));
+      z-index: 1000;
+      animation: progressAnimation 2s infinite linear;
+      background-size: 200% 100%;
+    }
+    
+    @keyframes progressAnimation {
+      0% { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+      .dashboard-header h1 {
+        font-size: 1.5rem;
+      }
+      #peopleCount {
+        font-size: 4rem;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .dashboard-header h1 {
+        font-size: 1.3rem;
+      }
+      .dashboard-header .badge {
+        display: none;
+      }
+      #peopleCount {
+        font-size: 3.5rem;
+      }
+    }
+    
+    /* Counter animation */
+    .counter-animation {
+      display: inline-block;
+      transform: scale(1);
+      animation: countUpdate 0.5s ease-out;
+    }
+    
+    @keyframes countUpdate {
+      0% { transform: scale(1.3); color: #ff5a5f; }
+      100% { transform: scale(1); }
+    }
+    
+    .people-card {
+      height: 100%;
+    }
+    
+    .detection-icon {
+      font-size: 3rem;
+      color: var(--success);
+      margin-bottom: 20px;
+    }
+    .live{
+        background-color: var(--accent);
+        margin-left: 13px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        width: 80px;
+        border-color:var(--accent);
+        color: #f8f9fa;
+        font-size: large;
+        font-weight: 500;
+        border-radius: 5px;
+        
+    }
+    .live:hover{
+        animation: pulse 2s infinite;
+        transform: scale(1.05);     
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading bar indicator -->
+  <div class="loading-bar"></div>
+  
+  <div class="page-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+      <h1>
+        <i class="fas fa-satellite-dish me-2"></i>
+        Disaster Management Monitoring System
+      </h1>
+    </div>
+    
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-6">
+          <!-- People Count - Now taking the full space -->
+          <div class="card people-card">
+            <div class="card-header">
+              <i class="fas fa-users"></i>Number of People Detected
+            </div>
+            <div class="card-body">
+              <div class="stats-container">
+                <i class="fas fa-user-shield detection-icon"></i>
+                <div id="peopleCount" class="counter-animation">0</div>
+                <span class="count-label">Total Detections</span>
+                <p class="mt-4 text-muted">Monitoring active populations in the disaster area</p>
+                <div class="mt-3">
+                  <button class="live">LIVE</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-6">
+          <!-- Human Detection Chart -->
+          <div class="card">
+            <div class="card-header">
+              <i class="fas fa-chart-line"></i>Human Detection Graph
+            </div>
+            <div class="card-body">
+              <canvas id="humanChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Table of Person Detections -->
+          <div class="card">
+            <div class="card-header">
+              <i class="fas fa-clipboard-list"></i>Person Detections Log
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Accuracy</th>
+                      <th>Bounding Box</th>
+                    </tr>
+                  </thead>
+                  <tbody id="detectionTableBody">
+                    <!-- Populated by Firebase data -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK and JavaScript -->
+  <script type="module">
+    // Import Firebase modules (Modular V9+)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      onValue
+    } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+    // Your Firebase configuration object
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOh-D6OMwrTu3IWfarKo0nh4bt3LeaXlI",
+      authDomain: "raspberrydata-41e99.firebaseapp.com",
+      databaseURL: "https://raspberrydata-41e99-default-rtdb.firebaseio.com/",
+      projectId: "raspberrydata-41e99",
+      storageBucket: "raspberrydata-41e99.firebasestorage.app",
+      messagingSenderId: "161208007104",
+      appId: "1:161208007104:web:d0f4d7ca61f4e37f33f025"
+    };
+
+    // Initialize Firebase and database
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Function to animate count change
+    function animateValue(element, start, end, duration) {
+      element.classList.remove('counter-animation');
+      
+      if (start === end) return;
+      
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const value = Math.floor(progress * (end - start) + start);
+        element.textContent = value;
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        } else {
+          element.textContent = end;
+          element.classList.add('counter-animation');
+        }
+      };
+      window.requestAnimationFrame(step);
+    }
+
+    // Person Detections
+    const personRef = ref(db, 'person_detections');
+    let currentPeopleCount = 0;
+    
+    onValue(personRef, (snapshot) => {
+      const data = snapshot.val();
+      const detectionTableBody = document.getElementById('detectionTableBody');
+      
+      // Clear existing rows but maintain a reference to them for smooth transitions
+      const existingRows = Array.from(detectionTableBody.children);
+      detectionTableBody.innerHTML = '';
+
+      if (data) {
+        const entries = Object.entries(data).sort((a, b) => {
+          // Sort by timestamp if available (newest first)
+          const timeA = a[1].timestamp || '';
+          const timeB = b[1].timestamp || '';
+          return timeB.localeCompare(timeA);
+        });
+        
+        // Update people count with animation
+        const peopleCountElement = document.getElementById('peopleCount');
+        animateValue(peopleCountElement, currentPeopleCount, entries.length, 800);
+        currentPeopleCount = entries.length;
+        
+        // Add rows to table with animation
+        entries.forEach(([ key, val ], index) => {
+          const row = document.createElement('tr');
+          if (index === 0) row.classList.add('new-row'); // Highlight newest entry
+          
+          const timestampTd = document.createElement('td');
+          const confidenceTd = document.createElement('td');
+          const bboxTd = document.createElement('td');
+
+          timestampTd.textContent = val.timestamp || 'N/A';
+          
+          if (val.confidence) {
+            // Format confidence as percentage with color indicator
+            const confidenceValue = (val.confidence * 100).toFixed(1);
+            const confidenceSpan = document.createElement('span');
+            confidenceSpan.textContent = `${confidenceValue}%`;
+            
+            // Color based on confidence level
+            if (val.confidence > 0.8) {
+              confidenceSpan.style.color = '#2ecc71'; // High confidence
+            } else if (val.confidence > 0.5) {
+              confidenceSpan.style.color = '#f39c12'; // Medium confidence
+            } else {
+              confidenceSpan.style.color = '#e74c3c'; // Low confidence
+            }
+            
+            confidenceTd.appendChild(confidenceSpan);
+          } else {
+            confidenceTd.textContent = 'N/A';
+          }
+          
+          if (val.bbox) {
+            // Format bounding box data in a more readable way
+            const bboxText = document.createElement('small');
+            bboxText.innerHTML = `
+              <span class="badge bg-secondary me-1">x1: ${val.bbox.x1}</span>
+              <span class="badge bg-secondary me-1">y1: ${val.bbox.y1}</span>
+              <span class="badge bg-secondary me-1">x2: ${val.bbox.x2}</span>
+              <span class="badge bg-secondary">y2: ${val.bbox.y2}</span>
+            `;
+            bboxTd.appendChild(bboxText);
+          } else {
+            bboxTd.textContent = 'N/A';
+          }
+
+          row.appendChild(timestampTd);
+          row.appendChild(confidenceTd);
+          row.appendChild(bboxTd);
+          detectionTableBody.appendChild(row);
+        });
+        
+        // Limit to 15 rows for performance
+        while (detectionTableBody.children.length > 15) {
+          detectionTableBody.removeChild(detectionTableBody.lastChild);
+        }
+      } else {
+        // If there's no data yet
+        document.getElementById('peopleCount').textContent = '0';
+      }
+    });
+
+    // Setup Chart.js for human detection values with improved styling
+    const ctx = document.getElementById('humanChart').getContext('2d');
+    
+    // Create gradient for chart
+    const gradientFill = ctx.createLinearGradient(0, 0, 0, 400);
+    gradientFill.addColorStop(0, 'rgba(52, 152, 219, 0.6)');
+    gradientFill.addColorStop(1, 'rgba(52, 152, 219, 0.1)');
+    
+    const chartData = {
+      labels: [],
+      datasets: [
+        {
+          label: 'Human Detections',
+          data: [],
+          backgroundColor: gradientFill,
+          borderColor: '#3498db',
+          borderWidth: 3,
+          pointBackgroundColor: '#2c3e50',
+          pointBorderColor: '#fff',
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          tension: 0.4, // Smooth curves
+          fill: true
+        }
+      ]
+    };
+
+    const humanChart = new Chart(ctx, {
+      type: 'line',
+      data: chartData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 1000,
+          easing: 'easeOutQuart'
+        },
+        scales: {
+          x: {
+            grid: {
+              color: 'rgba(0,0,0,0.05)'
+            },
+            title: { 
+              display: true, 
+              text: 'Time',
+              color: '#2c3e50',
+              font: {
+                weight: 'bold'
+              }
+            },
+            ticks: {
+              color: '#7f8c8d'
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0,0,0,0.05)'
+            },
+            title: { 
+              display: true, 
+              text: 'Count',
+              color: '#2c3e50',
+              font: {
+                weight: 'bold'
+              }
+            },
+            ticks: {
+              color: '#7f8c8d',
+              precision: 0
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              font: {
+                family: 'Segoe UI',
+                size: 13
+              },
+              color: '#2c3e50'
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(44, 62, 80, 0.9)',
+            titleFont: {
+              family: 'Segoe UI',
+              size: 14,
+              weight: 'bold'
+            },
+            bodyFont: {
+              family: 'Segoe UI',
+              size: 13
+            },
+            displayColors: false,
+            callbacks: {
+              title: function(tooltipItems) {
+                return 'Time: ' + tooltipItems[0].label;
+              },
+              label: function(context) {
+                return 'Detections: ' + context.raw;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Update the chart when human_detection data changes
+    const humanDetectionRef = ref(db, 'human_detection');
+    
+    onValue(humanDetectionRef, (snapshot) => {
+      const detectionValue = snapshot.val();
+      
+      // Only update chart if we have a valid value
+      if (detectionValue !== null && detectionValue !== undefined) {
+        const now = new Date();
+        // Create a time label in HH:MM:SS format
+        const timeLabel = now.toLocaleTimeString([], {hour12: false});
+        
+        // Add data to chart
+        chartData.labels.push(timeLabel);
+        chartData.datasets[0].data.push(detectionValue);
+
+        // Limit the chart data to the latest 20 entries for performance and readability
+        if (chartData.labels.length > 20) {
+          chartData.labels.shift();
+          chartData.datasets[0].data.shift();
+        }
+        
+        humanChart.update();
+      }
+    });
+  </script>
+
+  <!-- Bootstrap Bundle with Popper -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+  ></script>
+</body>
+</html>
