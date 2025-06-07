@@ -25,19 +25,16 @@
       --danger: #e74c3c;
       --info: #3498db;
     }
-    
     body {
       background: linear-gradient(135deg, #f6f9fc, #edf2f7);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       min-height: 100vh;
       padding: 20px 0;
     }
-    
     .page-container {
       max-width: 1400px;
       margin: 0 auto;
     }
-    
     .dashboard-header {
       background: linear-gradient(90deg, var(--primary), var(--secondary));
       color: white;
@@ -48,7 +45,6 @@
       position: relative;
       overflow: hidden;
     }
-    
     .dashboard-header h1 {
       margin: 0;
       font-weight: 600;
@@ -56,7 +52,6 @@
       display: flex;
       align-items: center;
     }
-    
     .dashboard-header .badge {
       background-color: var(--accent);
       margin-left: 15px;
@@ -64,7 +59,6 @@
       font-size: 0.8rem;
       animation: pulse 2s infinite;
     }
-    
     .card {
       border: none;
       border-radius: 15px;
@@ -76,24 +70,20 @@
       opacity: 0;
       transform: translateY(30px);
     }
-    
     .card:hover {
       transform: translateY(-5px);
       box-shadow: 0 12px 20px rgba(0,0,0,0.12);
     }
-    
     @keyframes slideUp {
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
-    
     .card:nth-child(1) { animation-delay: 0.1s; }
     .card:nth-child(2) { animation-delay: 0.2s; }
     .card:nth-child(3) { animation-delay: 0.3s; }
     .card:nth-child(4) { animation-delay: 0.4s; }
-    
     .card-header {
       background: linear-gradient(90deg, var(--primary), var(--secondary));
       color: var(--light);
@@ -104,17 +94,14 @@
       display: flex;
       align-items: center;
     }
-    
     .card-header i {
       font-size: 1.3rem;
       margin-right: 10px;
     }
-    
     .card-body {
       padding: 25px;
       background-color: white;
     }
-    
     .stats-container {
       background: linear-gradient(135deg, #f6f9fc, #edf2f7);
       border-radius: 12px;
@@ -128,7 +115,6 @@
       justify-content: center;
       align-items: center;
     }
-    
     .stats-container::before {
       content: '';
       position: absolute;
@@ -140,7 +126,6 @@
       background-color: rgba(255,255,255,0.3);
       z-index: 0;
     }
-    
     .stats-container::after {
       content: '';
       position: absolute;
@@ -152,7 +137,6 @@
       background-color: rgba(0,0,0,0.03);
       z-index: 0;
     }
-    
     #peopleCount {
       font-size: 6rem;
       font-weight: 700;
@@ -163,7 +147,6 @@
       display: inline-block;
       margin-bottom: 20px;
     }
-    
     .count-label {
       display: block;
       font-size: 1.5rem;
@@ -171,16 +154,13 @@
       margin-top: 15px;
       font-weight: 500;
     }
-    
     .table {
       margin-bottom: 0;
     }
-    
     .table-responsive {
       max-height: 300px;
       border-radius: 8px;
     }
-    
     .table thead th {
       background-color: #edf2f7;
       color: var(--secondary);
@@ -190,48 +170,36 @@
       top: 0;
       z-index: 1;
     }
-    
     .table tbody tr {
       transition: all 0.2s ease;
     }
-    
     .table tbody tr:hover {
       background-color: rgba(19, 64, 116, 0.05);
     }
-    
     .table tbody td {
       vertical-align: middle;
       padding: 12px 15px;
       border-color: #edf2f7;
     }
-    
     #humanChart {
       min-height: 300px;
     }
-    
-    /* Animation keyframes */
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
     }
-    
     @keyframes pulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.1); }
       100% { transform: scale(1); }
     }
-    
-    /* New row animation */
     .new-row {
       animation: rowHighlight 2s ease;
     }
-    
     @keyframes rowHighlight {
       0% { background-color: rgba(46, 204, 113, 0.2); }
       100% { background-color: transparent; }
     }
-    
-    /* Progress bar at the top of the page */
     .loading-bar {
       position: fixed;
       top: 0;
@@ -243,13 +211,10 @@
       animation: progressAnimation 2s infinite linear;
       background-size: 200% 100%;
     }
-    
     @keyframes progressAnimation {
       0% { background-position: 100% 0; }
       100% { background-position: -100% 0; }
     }
-    
-    /* Responsive adjustments */
     @media (max-width: 992px) {
       .dashboard-header h1 {
         font-size: 1.5rem;
@@ -258,7 +223,6 @@
         font-size: 4rem;
       }
     }
-    
     @media (max-width: 768px) {
       .dashboard-header h1 {
         font-size: 1.3rem;
@@ -270,23 +234,18 @@
         font-size: 3.5rem;
       }
     }
-    
-    /* Counter animation */
     .counter-animation {
       display: inline-block;
       transform: scale(1);
       animation: countUpdate 0.5s ease-out;
     }
-    
     @keyframes countUpdate {
       0% { transform: scale(1.3); color: #ff5a5f; }
       100% { transform: scale(1); }
     }
-    
     .people-card {
       height: 100%;
     }
-    
     .detection-icon {
       font-size: 3rem;
       color: var(--success);
@@ -303,15 +262,12 @@
         font-size: large;
         font-weight: 500;
         border-radius: 5px;
-        
     }
     .live:hover{
         animation: pulse 2s infinite;
         transform: scale(1.05);     
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
-    
-    /* Status indicator for presence */
     .presence-status {
       display: inline-block;
       width: 20px;
@@ -319,12 +275,10 @@
       border-radius: 50%;
       margin-right: 10px;
     }
-    
     .presence-active {
       background-color: var(--success);
       box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
     }
-    
     .presence-inactive {
       background-color: var(--danger);
       box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
@@ -376,7 +330,7 @@
           <!-- Human Detection Chart -->
           <div class="card">
             <div class="card-header">
-              <i class="fas fa-chart-line"></i>Human Presence Graph (Binary)
+              <i class="fas fa-chart-line"></i><span>Human Response Wave</span>
             </div>
             <div class="card-body">
               <canvas id="humanChart"></canvas>
@@ -439,9 +393,7 @@
     // Function to animate count change
     function animateValue(element, start, end, duration) {
       element.classList.remove('counter-animation');
-      
       if (start === end) return;
-      
       let startTimestamp = null;
       const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
@@ -462,13 +414,45 @@
     function updatePresenceIndicator(isPresent) {
       const indicator = document.getElementById('presenceIndicator');
       const text = document.getElementById('presenceText');
-      
       if (isPresent) {
         indicator.className = 'presence-status presence-active';
         text.textContent = 'Human Presence Detected';
         text.style.color = '#2ecc71';
-      } 
+      } else {
+        indicator.className = 'presence-status presence-inactive';
+        text.textContent = 'No Presence Detected';
+        text.style.color = '#e74c3c';
+      }
     }
+
+    // Listen specifically for human_detection value changes
+    const humanDetectionRef = ref(db, 'human_detection');
+    let humanDetectionValue = 0;
+
+    onValue(humanDetectionRef, (snapshot) => {
+      // Get the latest human detection value from Firebase
+      humanDetectionValue = snapshot.val() || 0;
+      console.log("Human detection value changed:", humanDetectionValue);
+      
+      // Update people count display
+      const peopleCountElement = document.getElementById('peopleCount');
+      animateValue(peopleCountElement, currentPeopleCount, humanDetectionValue, 800);
+      currentPeopleCount = humanDetectionValue;
+      
+      // Update presence indicator based on whether humans are detected
+      updatePresenceIndicator(humanDetectionValue > 0);
+      
+      // Update the chart to reflect new human detection value
+      updateChartWithHumanDetection(humanDetectionValue);
+      
+      // Update chart header
+      const chartHeader = document.querySelector('.card-header i + span');
+      if (humanDetectionValue > 0) {
+        chartHeader.textContent = `Human Response Wave (${humanDetectionValue} ${humanDetectionValue === 1 ? 'Person' : 'People'} Detected)`;
+      } else {
+        chartHeader.textContent = 'Human Response Wave (No Detection)';
+      }
+    });
 
     // Person Detections
     const personRef = ref(db, 'person_detections');
@@ -478,7 +462,6 @@
     onValue(personRef, (snapshot) => {
       const data = snapshot.val();
       const detectionTableBody = document.getElementById('detectionTableBody');
-      
       // Clear existing rows but maintain a reference to them for smooth transitions
       const existingRows = Array.from(detectionTableBody.children);
       detectionTableBody.innerHTML = '';
@@ -491,47 +474,25 @@
           return timeB.localeCompare(timeA);
         });
         
-        // Update people count with animation
-        const peopleCountElement = document.getElementById('peopleCount');
-        animateValue(peopleCountElement, currentPeopleCount, entries.length, 800);
-        currentPeopleCount = entries.length;
-        
-        // Update presence state - if we have any detections, set presence to 1
-        const newPresenceState = entries.length > 0 ? 1 : 0;
-        if (currentPresenceState !== newPresenceState) {
-          currentPresenceState = newPresenceState;
-          updatePresenceIndicator(currentPresenceState === 1);
-          
-          // Add the latest binary presence value to chart
-          const now = new Date();
-          const timeLabel = now.toLocaleTimeString([], {hour12: false});
-          addDataToChart(timeLabel, currentPresenceState);
-        }
-        
         // Add rows to table with animation
         entries.forEach(([ key, val ], index) => {
           const row = document.createElement('tr');
           if (index === 0) row.classList.add('new-row'); // Highlight newest entry
-          
           const timestampTd = document.createElement('td');
           const presenceTd = document.createElement('td');
           const confidenceTd = document.createElement('td');
           const bboxTd = document.createElement('td');
-
           timestampTd.textContent = val.timestamp || 'N/A';
-          
           // Add presence indicator
           const presenceIndicator = document.createElement('span');
           presenceIndicator.className = 'badge ' + (index === 0 ? 'bg-success' : 'bg-secondary');
           presenceIndicator.textContent = 'Present';
           presenceTd.appendChild(presenceIndicator);
-          
           if (val.confidence) {
             // Format confidence as percentage with color indicator
             const confidenceValue = (val.confidence * 100).toFixed(1);
             const confidenceSpan = document.createElement('span');
             confidenceSpan.textContent = `${confidenceValue}%`;
-            
             // Color based on confidence level
             if (val.confidence > 0.8) {
               confidenceSpan.style.color = '#2ecc71'; // High confidence
@@ -540,12 +501,10 @@
             } else {
               confidenceSpan.style.color = '#e74c3c'; // Low confidence
             }
-            
             confidenceTd.appendChild(confidenceSpan);
           } else {
             confidenceTd.textContent = 'N/A';
           }
-          
           if (val.bbox) {
             // Format bounding box data in a more readable way
             const bboxText = document.createElement('small');
@@ -559,49 +518,46 @@
           } else {
             bboxTd.textContent = 'N/A';
           }
-
           row.appendChild(timestampTd);
           row.appendChild(presenceTd);
           row.appendChild(confidenceTd);
           row.appendChild(bboxTd);
           detectionTableBody.appendChild(row);
         });
-        
         // Limit to 15 rows for performance
         while (detectionTableBody.children.length > 15) {
           detectionTableBody.removeChild(detectionTableBody.lastChild);
         }
-      } else {
-        // If there's no data yet
-        document.getElementById('peopleCount').textContent = '0';
-        updatePresenceIndicator(false);
       }
     });
 
-    // Setup Chart.js for human detection values with improved styling
+    // Setup Chart.js for damped oscillation wave
     const ctx = document.getElementById('humanChart').getContext('2d');
     
-    // Create gradients for chart areas
-    const gradientFillPresent = ctx.createLinearGradient(0, 0, 0, 300);
-    gradientFillPresent.addColorStop(0, 'rgba(46, 204, 113, 0.7)');
-    gradientFillPresent.addColorStop(1, 'rgba(46, 204, 113, 0.1)');
-    
-    // Chart configuration for binary presence (0-1 values)
+    // Chart configuration for damped oscillation waveform
     const chartData = {
       labels: [],
       datasets: [
         {
-          label: 'Human Presence',
+          label: 'Human Response',
           data: [],
-          backgroundColor: gradientFillPresent,
-          borderColor: '#2ecc71',
-          borderWidth: 3,
-          pointBackgroundColor: '#27ae60',
-          pointBorderColor: '#fff',
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          steppedLine: true, // Use stepped line for binary representation
-          fill: true
+          backgroundColor: 'transparent',
+          borderColor: '#2ecc71', // Green for human response
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.4,
+          fill: false
+        },
+        {
+          label: 'Ground Detection',
+          data: [],
+          backgroundColor: 'transparent',
+          borderColor: '#3498db', // Blue for ground detection
+          borderWidth: 1,
+          borderDash: [3, 3],
+          pointRadius: 0,
+          tension: 0,
+          fill: false
         }
       ]
     };
@@ -610,77 +566,81 @@
       responsive: true,
       maintainAspectRatio: false,
       animation: {
-        duration: 1000,
+        duration: 800,
         easing: 'easeOutQuart'
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index'
       },
       scales: {
         x: {
-          grid: {
-            color: 'rgba(0,0,0,0.05)'
-          },
           title: { 
             display: true, 
-            text: 'Time',
-            color: '#2c3e50',
+            text: 'Time(ms)',
+            color: '#000000',
             font: {
               weight: 'bold'
             }
           },
           ticks: {
-            color: '#7f8c8d'
+            color: '#000000'
           }
         },
         y: {
-          beginAtZero: true,
-          suggestedMax: 1, // Fixed scale for binary values
+          min: -400,
+          max: 800,
           grid: {
-            color: 'rgba(0,0,0,0.05)'
+            color: 'rgba(0,0,0,0.1)'
           },
           title: { 
             display: true, 
-            text: 'Presence (0 = No, 1 = Yes)',
-            color: '#2c3e50',
+            text: 'Amplitude(mV)',
+            color: '#000000',
             font: {
               weight: 'bold'
             }
           },
           ticks: {
-            color: '#7f8c8d',
-            stepSize: 1,
-            callback: function(value) {
-              return value === 0 ? 'No' : value === 1 ? 'Yes' : value;
-            }
+            color: '#000000',
+            stepSize: 200
           }
         }
       },
       plugins: {
         legend: {
+          position: 'top',
+          align: 'start',
           labels: {
+            boxWidth: 40,
             font: {
-              family: 'Segoe UI',
-              size: 13
+              family: 'Arial',
+              size: 12
             },
-            color: '#2c3e50'
+            color: '#000000'
           }
         },
         tooltip: {
-          backgroundColor: 'rgba(44, 62, 80, 0.9)',
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          titleColor: '#000000',
+          bodyColor: '#000000',
           titleFont: {
-            family: 'Segoe UI',
-            size: 14,
-            weight: 'bold'
+            family: 'Arial',
+            size: 14
           },
           bodyFont: {
-            family: 'Segoe UI',
+            family: 'Arial',
             size: 13
           },
+          borderColor: '#000000',
+          borderWidth: 1,
           displayColors: false,
           callbacks: {
             title: function(tooltipItems) {
-              return 'Time: ' + tooltipItems[0].label;
+              return 'Time: ' + tooltipItems[0].label + 'ms';
             },
             label: function(context) {
-              return context.raw === 1 ? 'Status: Human Detected' : 'Status: No Detection';
+              return context.dataset.label + ': ' + context.raw.toFixed(1) + 'mV';
             }
           }
         }
@@ -693,86 +653,65 @@
       options: chartOptions
     });
 
-    // Function to add data to the chart
-    function addDataToChart(label, value) {
-      // Add data to chart
-      chartData.labels.push(label);
-      chartData.datasets[0].data.push(value);
-
-      // Limit the chart data to the latest 20 entries for performance and readability
-      if (chartData.labels.length > 20) {
-        chartData.labels.shift();
-        chartData.datasets[0].data.shift();
+    // Function to update chart based on human detection value
+    function updateChartWithHumanDetection(detectionCount) {
+      // Clear any existing simulation interval
+      if (simulationInterval) clearInterval(simulationInterval);
+      
+      // Base parameters that scale with detection count
+      const baseAmplitude = 200; // Base amplitude when no humans
+      const humanAmplification = 200; // Additional amplitude per human detected
+      
+      // Calculate new amplitude based on detection count
+      const amplitude = baseAmplitude + (detectionCount * humanAmplification);
+      const frequency = 1.8 + (detectionCount * 0.1); // Slight increase with more people
+      const dampingFactor = 0.7 + (detectionCount * 0.02); // Slight increase in damping
+      
+      // Reset chart data
+      chartData.labels = [];
+      chartData.datasets[0].data = [];
+      chartData.datasets[1].data = [];
+      
+      // Generate the waveforms based on detection count
+      for (let i = 0; i < 30; i++) {
+        const t = i * 0.5; // time in ms
+        chartData.labels.push(t.toFixed(1));
+        
+        // Human response wave - cleaner, represents ideal signal
+        const simValue = amplitude * Math.exp(-dampingFactor * t) * Math.sin(2 * Math.PI * frequency * t);
+        chartData.datasets[0].data.push(simValue);
+        
+        // Ground detection wave - with noise and phase shift
+        const noise = (Math.random() - 0.5) * (50 + (detectionCount * 10)); // More noise with more people
+        const slightDelay = Math.sin(2 * Math.PI * frequency * (t - 0.05));
+        const measValue = amplitude * Math.exp(-dampingFactor * t) * slightDelay + noise;
+        chartData.datasets[1].data.push(measValue);
       }
       
+      // Set colors based on presence (red for no detection, green for detection)
+      if (detectionCount > 0) {
+        chartData.datasets[0].borderColor = '#2ecc71'; // Green for human response
+        chartData.datasets[1].borderColor = '#3498db'; // Blue for ground detection
+      } else {
+        chartData.datasets[0].borderColor = '#e74c3c'; // Red for no response
+        chartData.datasets[1].borderColor = '#95a5a6'; // Grey for ground
+      }
+      
+      // Update chart
       humanChart.update();
     }
 
-    // Initialize with a starting point
-    const initialTime = new Date().toLocaleTimeString([], {hour12: false});
-    addDataToChart(initialTime, 0);
-    
-    // Set up a simulation for binary presence detection
-    // This simulates presence data when actual Firebase data isn't coming in
-    // For testing and demonstration purposes
+    // Setup real-time data simulation for the damped oscillation
     let simulationInterval = null;
     
-    function startSimulation() {
-      if (simulationInterval) clearInterval(simulationInterval);
-      
-      simulationInterval = setInterval(() => {
-        const now = new Date();
-        const timeLabel = now.toLocaleTimeString([], {hour12: false});
-        
-        // Generate random binary presence (more likely to stay in current state)
-        let newValue;
-        if (chartData.datasets[0].data.length > 0) {
-          const lastValue = chartData.datasets[0].data[chartData.datasets[0].data.length - 1];
-          // 70% chance to stay in current state, 30% to change
-          newValue = Math.random() < 0.7 ? lastValue : (lastValue === 1 ? 0 : 1);
-        } else {
-          newValue = Math.round(Math.random()); // Initial value
-        }
-        
-        // Update UI and chart
-        addDataToChart(timeLabel, newValue);
-        updatePresenceIndicator(newValue === 1);
-      }, 3000); // Update every 3 seconds
-    }
-    
-    // Start simulation after a short delay if no real data comes in
-    setTimeout(() => {
-      if (chartData.datasets[0].data.length <= 1) {
-        startSimulation();
-      }
-    }, 5000);
-
-    // Update the chart when human_detection data changes from Firebase
-    const humanDetectionRef = ref(db, 'human_detection');
-    
-    onValue(humanDetectionRef, (snapshot) => {
-      const detectionValue = snapshot.val();
-      
-      // Only update chart if we have a valid value
-      if (detectionValue !== null && detectionValue !== undefined) {
-        // Stop the simulation if we have real data
-        if (simulationInterval) {
-          clearInterval(simulationInterval);
-          simulationInterval = null;
-        }
-        
-        const now = new Date();
-        // Create a time label in HH:MM:SS format
-        const timeLabel = now.toLocaleTimeString([], {hour12: false});
-        
-        // Convert detection value to binary (0 or 1)
-        const binaryValue = detectionValue > 0 ? 1 : 0;
-        
-        // Update UI and chart
-        addDataToChart(timeLabel, binaryValue);
-        updatePresenceIndicator(binaryValue === 1);
-      }
+    // Live button click event - refresh wave with current detection value
+    document.querySelector('.live').addEventListener('click', () => {
+      // Force refresh the chart with current human detection value
+      updateChartWithHumanDetection(humanDetectionValue);
     });
+    
+    // Initialize chart with zero human detection
+    updateChartWithHumanDetection(0);
   </script>
 
   <!-- Bootstrap Bundle with Popper -->
