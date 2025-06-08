@@ -305,7 +305,7 @@
           <!-- People Count - Now taking the full space -->
           <div class="card people-card">
             <div class="card-header">
-              <i class="fas fa-users"></i>Human Presence Status
+              <i class="fas fa-users"></i>Human Presence Status (Below Ground)
             </div>
             <div class="card-body">
               <div class="stats-container">
@@ -340,7 +340,7 @@
           <!-- Table of Person Detections -->
           <div class="card">
             <div class="card-header">
-              <i class="fas fa-clipboard-list"></i>Person Detections Log
+              <i class="fas fa-clipboard-list"></i>Person Detections Log (Above Ground)
             </div>
             <div class="card-body">
               <div class="table-responsive">
@@ -517,8 +517,8 @@
     });
 
     // Maintain a real-time buffer of signal data
-    const TIME_WINDOW = 10; // 10 second window
-    const SAMPLE_RATE = 10; // 10 samples per second
+    const TIME_WINDOW = 7; // 10 second window
+    const SAMPLE_RATE = 15; // 10 samples per second
     const BUFFER_SIZE = TIME_WINDOW * SAMPLE_RATE;
 
     // Initialize time and data arrays
