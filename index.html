@@ -330,7 +330,7 @@
           <!-- Human Detection Chart -->
           <div class="card">
             <div class="card-header">
-              <i class="fas fa-chart-line"></i><span>Human Response Wave</span>
+              <i class="fas fa-chart-line"></i><span>Signal Waveform</span>
             </div>
             <div class="card-body">
               <canvas id="humanChart"></canvas>
@@ -410,54 +410,39 @@
       window.requestAnimationFrame(step);
     }
     
-    // Function to update presence indicator
-    function updatePresenceIndicator(isPresent) {
+    // Function to update presence indicator with actual count
+    function updatePresenceIndicator(detectionCount) {
       const indicator = document.getElementById('presenceIndicator');
       const text = document.getElementById('presenceText');
-      if (isPresent) {
+      
+      if (detectionCount > 0) {
+        // Active presence
         indicator.className = 'presence-status presence-active';
-        text.textContent = 'Human Presence Detected';
+        
+        // Show the exact count in the status message
+        if (detectionCount === 1) {
+          text.textContent = '1 Person Detected';
+        } else {
+          text.textContent = `${detectionCount} People Detected`;
+        }
         text.style.color = '#2ecc71';
       } else {
+        // No presence
         indicator.className = 'presence-status presence-inactive';
         text.textContent = 'No Presence Detected';
         text.style.color = '#e74c3c';
       }
     }
 
-    // Listen specifically for human_detection value changes
-    const humanDetectionRef = ref(db, 'human_detection');
+    // Setup variables for Firebase data
     let humanDetectionValue = 0;
-
-    onValue(humanDetectionRef, (snapshot) => {
-      // Get the latest human detection value from Firebase
-      humanDetectionValue = snapshot.val() || 0;
-      console.log("Human detection value changed:", humanDetectionValue);
-      
-      // Update people count display
-      const peopleCountElement = document.getElementById('peopleCount');
-      animateValue(peopleCountElement, currentPeopleCount, humanDetectionValue, 800);
-      currentPeopleCount = humanDetectionValue;
-      
-      // Update presence indicator based on whether humans are detected
-      updatePresenceIndicator(humanDetectionValue > 0);
-      
-      // Update the chart to reflect new human detection value
-      updateChartWithHumanDetection(humanDetectionValue);
-      
-      // Update chart header
-      const chartHeader = document.querySelector('.card-header i + span');
-      if (humanDetectionValue > 0) {
-        chartHeader.textContent = `Human Response Wave (${humanDetectionValue} ${humanDetectionValue === 1 ? 'Person' : 'People'} Detected)`;
-      } else {
-        chartHeader.textContent = 'Human Response Wave (No Detection)';
-      }
-    });
+    let currentPeopleCount = 0;
+    let currentAmplitude = 0;
+    let lastAmplitudeUpdate = Date.now(); // New variable for amplitude decay
+    let amplitudeDecayFactor = 1.0;      // New variable for decay factor
 
     // Person Detections
     const personRef = ref(db, 'person_detections');
-    let currentPeopleCount = 0;
-    let currentPresenceState = 0; // 0 = no presence, 1 = presence detected
     
     onValue(personRef, (snapshot) => {
       const data = snapshot.val();
@@ -531,32 +516,32 @@
       }
     });
 
-    // Setup Chart.js for damped oscillation wave
+    // Maintain a real-time buffer of signal data
+    const TIME_WINDOW = 10; // 10 second window
+    const SAMPLE_RATE = 10; // 10 samples per second
+    const BUFFER_SIZE = TIME_WINDOW * SAMPLE_RATE;
+
+    // Initialize time and data arrays
+    let timeData = Array(BUFFER_SIZE).fill(0).map((_, i) => i / SAMPLE_RATE);
+    let signalData = Array(BUFFER_SIZE).fill(0);
+    let lastTimestamp = Date.now();
+    let startTime = Date.now();
+
+    // Setup Chart.js for real-time signal display
     const ctx = document.getElementById('humanChart').getContext('2d');
     
-    // Chart configuration for damped oscillation waveform
+    // Chart configuration for oscilloscope-like display
     const chartData = {
-      labels: [],
+      labels: timeData.map(t => t.toFixed(1)),
       datasets: [
         {
-          label: 'Human Response',
-          data: [],
+          label: 'Radar Signal',
+          data: signalData,
           backgroundColor: 'transparent',
-          borderColor: '#2ecc71', // Green for human response
+          borderColor: '#000000',
           borderWidth: 2,
           pointRadius: 0,
-          tension: 0.4,
-          fill: false
-        },
-        {
-          label: 'Ground Detection',
-          data: [],
-          backgroundColor: 'transparent',
-          borderColor: '#3498db', // Blue for ground detection
-          borderWidth: 1,
-          borderDash: [3, 3],
-          pointRadius: 0,
-          tension: 0,
+          tension: 0.2,
           fill: false
         }
       ]
@@ -566,8 +551,7 @@
       responsive: true,
       maintainAspectRatio: false,
       animation: {
-        duration: 800,
-        easing: 'easeOutQuart'
+        duration: 0 // No animation for real-time effect
       },
       interaction: {
         intersect: false,
@@ -577,25 +561,26 @@
         x: {
           title: { 
             display: true, 
-            text: 'Time(ms)',
+            text: 'Time (s)',
             color: '#000000',
             font: {
               weight: 'bold'
             }
           },
           ticks: {
-            color: '#000000'
+            color: '#000000',
+            maxTicksLimit: 10
           }
         },
         y: {
-          min: -400,
-          max: 800,
+          min: -1,
+          max: 1,
           grid: {
             color: 'rgba(0,0,0,0.1)'
           },
           title: { 
             display: true, 
-            text: 'Amplitude(mV)',
+            text: 'Amplitude',
             color: '#000000',
             font: {
               weight: 'bold'
@@ -603,22 +588,13 @@
           },
           ticks: {
             color: '#000000',
-            stepSize: 200
+            stepSize: 0.5
           }
         }
       },
       plugins: {
         legend: {
-          position: 'top',
-          align: 'start',
-          labels: {
-            boxWidth: 40,
-            font: {
-              family: 'Arial',
-              size: 12
-            },
-            color: '#000000'
-          }
+          display: false
         },
         tooltip: {
           backgroundColor: 'rgba(255, 255, 255, 0.9)',
@@ -637,10 +613,10 @@
           displayColors: false,
           callbacks: {
             title: function(tooltipItems) {
-              return 'Time: ' + tooltipItems[0].label + 'ms';
+              return 'Time: ' + tooltipItems[0].parsed.x.toFixed(2) + ' s';
             },
             label: function(context) {
-              return context.dataset.label + ': ' + context.raw.toFixed(1) + 'mV';
+              return 'Amplitude: ' + context.parsed.y.toFixed(2);
             }
           }
         }
@@ -653,65 +629,181 @@
       options: chartOptions
     });
 
-    // Function to update chart based on human detection value
-    function updateChartWithHumanDetection(detectionCount) {
-      // Clear any existing simulation interval
-      if (simulationInterval) clearInterval(simulationInterval);
+    // Function to add new signal data point based on current amplitude and detection
+    function addNewDataPoint() {
+      // Calculate elapsed time since last update for realistic time tracking
+      const now = Date.now();
+      const elapsed = (now - lastTimestamp) / 1000;
+      lastTimestamp = now;
       
-      // Base parameters that scale with detection count
-      const baseAmplitude = 200; // Base amplitude when no humans
-      const humanAmplification = 200; // Additional amplitude per human detected
+      // Shift time window
+      timeData = timeData.map(t => t + elapsed);
       
-      // Calculate new amplitude based on detection count
-      const amplitude = baseAmplitude + (detectionCount * humanAmplification);
-      const frequency = 1.8 + (detectionCount * 0.1); // Slight increase with more people
-      const dampingFactor = 0.7 + (detectionCount * 0.02); // Slight increase in damping
-      
-      // Reset chart data
-      chartData.labels = [];
-      chartData.datasets[0].data = [];
-      chartData.datasets[1].data = [];
-      
-      // Generate the waveforms based on detection count
-      for (let i = 0; i < 30; i++) {
-        const t = i * 0.5; // time in ms
-        chartData.labels.push(t.toFixed(1));
-        
-        // Human response wave - cleaner, represents ideal signal
-        const simValue = amplitude * Math.exp(-dampingFactor * t) * Math.sin(2 * Math.PI * frequency * t);
-        chartData.datasets[0].data.push(simValue);
-        
-        // Ground detection wave - with noise and phase shift
-        const noise = (Math.random() - 0.5) * (50 + (detectionCount * 10)); // More noise with more people
-        const slightDelay = Math.sin(2 * Math.PI * frequency * (t - 0.05));
-        const measValue = amplitude * Math.exp(-dampingFactor * t) * slightDelay + noise;
-        chartData.datasets[1].data.push(measValue);
+      // If we've moved past the time window, reset to keep display within bounds
+      if (timeData[0] > TIME_WINDOW) {
+        const shift = timeData[0];
+        timeData = timeData.map(t => t - shift);
       }
       
-      // Set colors based on presence (red for no detection, green for detection)
-      if (detectionCount > 0) {
-        chartData.datasets[0].borderColor = '#2ecc71'; // Green for human response
-        chartData.datasets[1].borderColor = '#3498db'; // Blue for ground detection
+      // Remove oldest data point
+      signalData.shift();
+      
+      // Calculate new value based on amplitude, detection, and time
+      const newValue = calculateSignalValue();
+      
+      // Add new value to end of array
+      signalData.push(newValue);
+      
+      // Update chart with new data
+      chartData.labels = timeData.map(t => t.toFixed(1));
+      chartData.datasets[0].data = signalData;
+      
+      // Set chart color based on detection
+      if (humanDetectionValue > 0) {
+        chartData.datasets[0].borderColor = '#000000';  // Black when people detected
+        chartData.datasets[0].borderWidth = 2;
       } else {
-        chartData.datasets[0].borderColor = '#e74c3c'; // Red for no response
-        chartData.datasets[1].borderColor = '#95a5a6'; // Grey for ground
+        chartData.datasets[0].borderColor = '#e74c3c';  // Red when no detection
+        chartData.datasets[0].borderWidth = 1.5;
       }
       
-      // Update chart
-      humanChart.update();
+      // Update chart with 'none' animation for performance
+      humanChart.update('none');
+    }
+    
+    // Calculate signal value based on current amplitude, detection, and elapsed time
+    function calculateSignalValue() {
+      // Calculate how long since the last amplitude update
+      const timeSinceUpdate = (Date.now() - lastAmplitudeUpdate) / 1000;
+      
+      // Apply decay to amplitude - drops to near zero after 5 seconds
+      // This creates a natural radar ping effect instead of permanent high values
+      amplitudeDecayFactor = Math.max(0.05, Math.exp(-timeSinceUpdate / 2));
+      
+      // Apply decay to effective amplitude
+      const effectiveAmplitude = currentAmplitude * amplitudeDecayFactor;
+      
+      // Base value is 0 if no detection or amplitude
+      if (humanDetectionValue <= 0 && effectiveAmplitude <= 0) {
+        return 0;
+      }
+      
+      // Scale factor based on decaying amplitude
+      const scaleFactor = effectiveAmplitude > 0 ? effectiveAmplitude/500 : 0.1;
+      
+      // Base frequency increases with amplitude (higher amplitude = higher frequency)
+      const baseFrequency = 0.5 + (scaleFactor * 5);
+      
+      // Current time in seconds since start
+      const elapsedTimeSec = (Date.now() - startTime) / 1000;
+      
+      // Create a complex radar signal pattern
+      let value = 0;
+      
+      // Use time pattern to create radar pulse features
+      const pulsePhase = (elapsedTimeSec * baseFrequency) % 4; // Pattern repeats every 4 seconds
+      
+      if (pulsePhase < 0.2) {
+        // Create spike like in reference image
+        value = scaleFactor * 0.9; // Positive spike
+      } else if (pulsePhase > 0.3 && pulsePhase < 0.5) {
+        // Create negative deflection after spike
+        value = -scaleFactor * 0.8;
+      } else if (pulsePhase > 0.7 && pulsePhase < 3.0) {
+        // Create diminishing oscillations
+        const oscFreq = baseFrequency * 2.5;  // Higher frequency oscillations
+        value = Math.sin(pulsePhase * Math.PI * oscFreq) * Math.exp(-(pulsePhase - 0.7)) * scaleFactor * 0.6;
+      }
+      
+      // Add some noise
+      value += (Math.random() - 0.5) * 0.05 * scaleFactor;
+      
+      // Scale based on detection count
+      return value * (0.7 + (humanDetectionValue * 0.01));
     }
 
-    // Setup real-time data simulation for the damped oscillation
+    // Initialize variable for simulation interval
     let simulationInterval = null;
-    
-    // Live button click event - refresh wave with current detection value
-    document.querySelector('.live').addEventListener('click', () => {
-      // Force refresh the chart with current human detection value
-      updateChartWithHumanDetection(humanDetectionValue);
+
+    // Function to update chart based on human detection and amplitude values
+    function updateChartWithValues(detectionCount, amplitudeValue) {
+      // Clear any existing simulation interval
+      if (simulationInterval) {
+        clearInterval(simulationInterval);
+        simulationInterval = null;
+      }
+      
+      // Reset start time for consistent pulses
+      startTime = Date.now();
+      lastTimestamp = Date.now();
+      
+      // Set up interval to continuously update the chart with new data points
+      simulationInterval = setInterval(() => {
+        addNewDataPoint();
+      }, 1000 / SAMPLE_RATE);
+      
+      // Update chart header
+      const chartHeader = document.querySelector('.card-header i + span');
+      if (detectionCount > 0) {
+        chartHeader.textContent = `Signal Waveform (${detectionCount} ${detectionCount === 1 ? 'Person' : 'People'} Detected)`;
+      } else {
+        chartHeader.textContent = 'Signal Waveform (No Detection)';
+      }
+    }
+
+    // Listen for amplitude value changes
+    const amplitudeRef = ref(db, 'amplitude');
+    onValue(amplitudeRef, (snapshot) => {
+      currentAmplitude = snapshot.val() || 0;
+      
+      // Reset decay timer whenever amplitude is updated
+      lastAmplitudeUpdate = Date.now();
+      amplitudeDecayFactor = 1.0;
+      
+      console.log("Amplitude value changed:", currentAmplitude);
+    });
+
+    // Listen for human_detection value changes
+    const humanDetectionRef = ref(db, 'human_detection');
+    onValue(humanDetectionRef, (snapshot) => {
+      // Get the latest human detection value from Firebase
+      humanDetectionValue = snapshot.val() || 0;
+      console.log("Human detection value changed:", humanDetectionValue);
+      
+      // Update people count display
+      const peopleCountElement = document.getElementById('peopleCount');
+      animateValue(peopleCountElement, currentPeopleCount, humanDetectionValue, 800);
+      currentPeopleCount = humanDetectionValue;
+      
+      // Update presence indicator with the actual count
+      updatePresenceIndicator(humanDetectionValue);
+      
+      // Update chart header
+      const chartHeader = document.querySelector('.card-header i + span');
+      if (humanDetectionValue > 0) {
+        chartHeader.textContent = `Signal Waveform (${humanDetectionValue} ${humanDetectionValue === 1 ? 'Person' : 'People'} Detected)`;
+      } else {
+        chartHeader.textContent = 'Signal Waveform';
+      }
     });
     
-    // Initialize chart with zero human detection
-    updateChartWithHumanDetection(0);
+    // Live button click event - restart the chart
+    document.querySelector('.live').addEventListener('click', () => {
+      // Reset arrays
+      signalData = Array(BUFFER_SIZE).fill(0);
+      timeData = Array(BUFFER_SIZE).fill(0).map((_, i) => i / SAMPLE_RATE);
+      
+      // Reset start time
+      startTime = Date.now();
+      lastTimestamp = Date.now();
+      lastAmplitudeUpdate = Date.now(); // Also reset amplitude update time
+      
+      // Restart chart update
+      updateChartWithValues(humanDetectionValue, currentAmplitude);
+    });
+    
+    // Initialize chart
+    updateChartWithValues(0, 0);
   </script>
 
   <!-- Bootstrap Bundle with Popper -->
