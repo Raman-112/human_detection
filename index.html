@@ -533,12 +533,11 @@
     // Chart configuration for oscilloscope-like display
     const chartData = {
       labels: timeData.map(t => t.toFixed(1)),
-      datasets: [
-        {
-          label: 'Radar Signal',
+      datasets: [        {
+          label: 'Microwave Frequency Signal',
           data: signalData,
           backgroundColor: 'transparent',
-          borderColor: '#000000',
+          borderColor: '#2ecc71',
           borderWidth: 2,
           pointRadius: 0,
           tension: 0.2,
@@ -657,76 +656,62 @@
       // Update chart with new data
       chartData.labels = timeData.map(t => t.toFixed(1));
       chartData.datasets[0].data = signalData;
-      
-      // Set chart color based on detection
-      if (humanDetectionValue > 0) {
-        chartData.datasets[0].borderColor = '#000000';  // Black when people detected
+        // Set chart color based on microwave frequency detection
+      if (currentAmplitude > 0) {
+        chartData.datasets[0].borderColor = '#2ecc71';  // Green when motion detected
         chartData.datasets[0].borderWidth = 2;
       } else {
-        chartData.datasets[0].borderColor = '#e74c3c';  // Red when no detection
+        chartData.datasets[0].borderColor = '#e74c3c';  // Red when no motion
         chartData.datasets[0].borderWidth = 1.5;
       }
       
       // Update chart with 'none' animation for performance
       humanChart.update('none');
     }
-    
-    // Calculate signal value based on current amplitude, detection, and elapsed time
+      // Calculate signal value based on microwave frequency and detection
     function calculateSignalValue() {
       // Calculate how long since the last amplitude update
       const timeSinceUpdate = (Date.now() - lastAmplitudeUpdate) / 1000;
       
-      // Apply decay to amplitude - drops to near zero after 5 seconds
-      // This creates a natural radar ping effect instead of permanent high values
-      amplitudeDecayFactor = Math.max(0.05, Math.exp(-timeSinceUpdate / 2));
+      // Apply decay to amplitude - drops to near zero after 3 seconds for microwave sensor
+      amplitudeDecayFactor = Math.max(0.02, Math.exp(-timeSinceUpdate / 1.5));
       
-      // Apply decay to effective amplitude
-      const effectiveAmplitude = currentAmplitude * amplitudeDecayFactor;
+      // Apply decay to effective amplitude (frequency)
+      const effectiveFrequency = currentAmplitude * amplitudeDecayFactor;
       
-      // Base value is 0 if no detection or amplitude
-      if (humanDetectionValue <= 0 && effectiveAmplitude <= 0) {
+      // Base value is 0 if no frequency detected
+      if (effectiveFrequency <= 0) {
         return 0;
       }
       
-      // Scale factor based on decaying amplitude
-      const scaleFactor = effectiveAmplitude > 0 ? effectiveAmplitude/500 : 0.1;
-      
-      // Base frequency increases with amplitude (higher amplitude = higher frequency)
-      const baseFrequency = 0.5 + (scaleFactor * 5);
+      // Scale factor based on frequency value
+      const scaleFactor = Math.min(effectiveFrequency / 10, 1); // Normalize frequency
       
       // Current time in seconds since start
       const elapsedTimeSec = (Date.now() - startTime) / 1000;
       
-      // Create a complex radar signal pattern
+      // Create microwave signal pattern based on actual frequency
       let value = 0;
       
-      // Use time pattern to create radar pulse features
-      const pulsePhase = (elapsedTimeSec * baseFrequency) % 4; // Pattern repeats every 4 seconds
+      // Create signal pattern that represents microwave detection
+      const signalFreq = 2 + (effectiveFrequency * 0.1); // Base frequency for oscillation
+      const pulsePattern = Math.sin(elapsedTimeSec * Math.PI * signalFreq) * scaleFactor;
       
-      if (pulsePhase < 0.2) {
-        // Create spike like in reference image
-        value = scaleFactor * 0.9; // Positive spike
-      } else if (pulsePhase > 0.3 && pulsePhase < 0.5) {
-        // Create negative deflection after spike
-        value = -scaleFactor * 0.8;
-      } else if (pulsePhase > 0.7 && pulsePhase < 3.0) {
-        // Create diminishing oscillations
-        const oscFreq = baseFrequency * 2.5;  // Higher frequency oscillations
-        value = Math.sin(pulsePhase * Math.PI * oscFreq) * Math.exp(-(pulsePhase - 0.7)) * scaleFactor * 0.6;
-      }
+      // Add frequency-based amplitude modulation
+      const amplitudeModulation = 0.8 + (0.2 * Math.sin(elapsedTimeSec * Math.PI * 0.5));
       
-      // Add some noise
+      value = pulsePattern * amplitudeModulation;
+      
+      // Add small amount of noise to make it look realistic
       value += (Math.random() - 0.5) * 0.05 * scaleFactor;
       
-      // Scale based on detection count
-      return value * (0.7 + (humanDetectionValue * 0.01));
+      // Ensure the signal amplitude represents the frequency intensity
+      return value * 0.8; // Scale to fit in -1 to 1 range
     }
 
     // Initialize variable for simulation interval
-    let simulationInterval = null;
-
-    // Function to update chart based on human detection and amplitude values
-    function updateChartWithValues(detectionCount, amplitudeValue) {
+    let simulationInterval = null;    // Function to update chart based on microwave frequency detection
+    function updateChartWithValues(detectionCount, frequencyValue) {
       // Clear any existing simulation interval
       if (simulationInterval) {
         clearInterval(simulationInterval);
@@ -744,47 +729,58 @@
       
       // Update chart header
       const chartHeader = document.querySelector('.card-header i + span');
-      if (detectionCount > 0) {
-        chartHeader.textContent = `Signal Waveform (${detectionCount} ${detectionCount === 1 ? 'Person' : 'People'} Detected)`;
+      if (frequencyValue > 0) {
+        chartHeader.textContent = `Microwave Signal (Frequency: ${frequencyValue})`;
       } else {
-        chartHeader.textContent = 'Signal Waveform (No Detection)';
+        chartHeader.textContent = 'Microwave Signal (No Motion)';
       }
-    }
-
-    // Listen for amplitude value changes
-    const amplitudeRef = ref(db, 'amplitude');
-    onValue(amplitudeRef, (snapshot) => {
-      currentAmplitude = snapshot.val() || 0;
-      
-      // Reset decay timer whenever amplitude is updated
-      lastAmplitudeUpdate = Date.now();
-      amplitudeDecayFactor = 1.0;
-      
-      console.log("Amplitude value changed:", currentAmplitude);
+    }// Listen for microwave sensor data changes
+    const microwaveRef = ref(db, 'microwave_data');
+    onValue(microwaveRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        // Get the latest entry (highest key)
+        const entries = Object.entries(data).sort((a, b) => parseInt(b[0]) - parseInt(a[0]));
+        if (entries.length > 0) {
+          const latestData = entries[0][1];
+          const frequency = latestData.frequency || 0;
+          
+          console.log("Microwave frequency received:", frequency);
+          
+          // Update current amplitude with frequency value
+          currentAmplitude = frequency;
+          lastAmplitudeUpdate = Date.now();
+          amplitudeDecayFactor = 1.0;
+          
+          // Update people count based on frequency
+          // If frequency > 0, consider it as detection
+          const detectionCount = frequency > 0 ? frequency : 0;
+          
+          // Update people count display
+          const peopleCountElement = document.getElementById('peopleCount');
+          animateValue(peopleCountElement, currentPeopleCount, detectionCount, 800);
+          currentPeopleCount = detectionCount;
+          
+          // Update presence indicator
+          updatePresenceIndicator(detectionCount);
+          
+          // Update chart header
+          const chartHeader = document.querySelector('.card-header i + span');
+          if (frequency > 0) {
+            chartHeader.textContent = `Microwave Signal (Frequency: ${frequency})`;
+          } else {
+            chartHeader.textContent = 'Microwave Signal (No Motion)';
+          }
+        }
+      }
     });
 
-    // Listen for human_detection value changes
+    // Listen for human_detection value changes (backup/additional detection)
     const humanDetectionRef = ref(db, 'human_detection');
     onValue(humanDetectionRef, (snapshot) => {
       // Get the latest human detection value from Firebase
       humanDetectionValue = snapshot.val() || 0;
       console.log("Human detection value changed:", humanDetectionValue);
-      
-      // Update people count display
-      const peopleCountElement = document.getElementById('peopleCount');
-      animateValue(peopleCountElement, currentPeopleCount, humanDetectionValue, 800);
-      currentPeopleCount = humanDetectionValue;
-      
-      // Update presence indicator with the actual count
-      updatePresenceIndicator(humanDetectionValue);
-      
-      // Update chart header
-      const chartHeader = document.querySelector('.card-header i + span');
-      if (humanDetectionValue > 0) {
-        chartHeader.textContent = `Signal Waveform (${humanDetectionValue} ${humanDetectionValue === 1 ? 'Person' : 'People'} Detected)`;
-      } else {
-        chartHeader.textContent = 'Signal Waveform';
-      }
     });
     
     // Live button click event - restart the chart
@@ -797,9 +793,8 @@
       startTime = Date.now();
       lastTimestamp = Date.now();
       lastAmplitudeUpdate = Date.now(); // Also reset amplitude update time
-      
-      // Restart chart update
-      updateChartWithValues(humanDetectionValue, currentAmplitude);
+        // Restart chart update with current microwave frequency
+      updateChartWithValues(currentPeopleCount, currentAmplitude);
     });
     
     // Initialize chart
