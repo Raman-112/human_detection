@@ -432,14 +432,13 @@
         text.textContent = 'No Presence Detected';
         text.style.color = '#e74c3c';
       }
-    }
-
-    // Setup variables for Firebase data
+    }    // Setup variables for Firebase data
     let humanDetectionValue = 0;
     let currentPeopleCount = 0;
     let currentAmplitude = 0;
     let lastAmplitudeUpdate = Date.now(); // New variable for amplitude decay
     let amplitudeDecayFactor = 1.0;      // New variable for decay factor
+    let humanDetected = false;           // Flag to keep count at 1 once detected
 
     // Person Detections
     const personRef = ref(db, 'person_detections');
@@ -750,11 +749,12 @@
           // Update current amplitude with frequency value
           currentAmplitude = frequency;
           lastAmplitudeUpdate = Date.now();
-          amplitudeDecayFactor = 1.0;
-          
-          // Update people count based on frequency
-          // If frequency > 0, consider it as detection
-          const detectionCount = frequency > 0 ? frequency : 0;
+          amplitudeDecayFactor = 1.0;          // Update people count based on frequency
+          // Once frequency > 0 is detected, keep count at 1 permanently
+          if (frequency > 0) {
+            humanDetected = true;
+          }
+          const detectionCount = humanDetected ? 1 : 0;
           
           // Update people count display
           const peopleCountElement = document.getElementById('peopleCount');
@@ -782,8 +782,7 @@
       humanDetectionValue = snapshot.val() || 0;
       console.log("Human detection value changed:", humanDetectionValue);
     });
-    
-    // Live button click event - restart the chart
+      // Live button click event - restart the chart
     document.querySelector('.live').addEventListener('click', () => {
       // Reset arrays
       signalData = Array(BUFFER_SIZE).fill(0);
@@ -793,7 +792,14 @@
       startTime = Date.now();
       lastTimestamp = Date.now();
       lastAmplitudeUpdate = Date.now(); // Also reset amplitude update time
-        // Restart chart update with current microwave frequency
+      
+      // Reset human detection flag to allow fresh detection
+      humanDetected = false;
+      currentPeopleCount = 0;
+      document.getElementById('peopleCount').textContent = '0';
+      updatePresenceIndicator(0);
+      
+      // Restart chart update with current microwave frequency
       updateChartWithValues(currentPeopleCount, currentAmplitude);
     });
     
